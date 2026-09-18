@@ -12,7 +12,7 @@ ChatAppPart1 is a Java-based application designed to manage user registration, a
 
   ## Project Structure
   * `Login.java`: Core backend logic handling user creation, password verification, and validation rules.
-  * `Main.java: Application Entry point and user interaction flow.
+  * `Main.java`: Application Entry point and user interaction flow.
   * `LoginTest.java`: Automated unit test covering success and failure cases for authentication and validation.
  
     ## Author Details
