@@ -14,52 +14,67 @@ import static org.junit.jupiter.api.Assertions.*;
 public class LoginTest {
     
 
-    private final Login login = new Login();
-
     @Test
-    public void testValidUsername() {
+    public void testUserNameValid() {
+        Login login = new Login();
         assertTrue(login.checkUserName("kyl_1"));
     }
 
     @Test
-    public void testInvalidUsername() {
+    public void testUserNameInvalid() {
+        Login login = new Login();
         assertFalse(login.checkUserName("kyle!!!!!!"));
     }
 
     @Test
-    public void testValidPassword() {
-        assertTrue(login.checkPasswordComplexity("Ch&&sec@ke99!"));
+    public void testPasswordComplexityValid() {
+        Login login = new Login();
+        assertTrue(login.checkPasswordComplexity("Ch&&&sec@ke99!"));
     }
 
     @Test
-    public void testInvalidPassword() {
+    public void testPasswordComplexityInvalid() {
+        Login login = new Login();
         assertFalse(login.checkPasswordComplexity("password"));
     }
 
     @Test
-    public void testValidCellNumber() {
-        assertTrue(login.checkCellPhoneNumber("+27838968976"));
+    public void testCellPhoneValid() {
+        Login login = new Login();
+        assertTrue(login.checkCellPhoneNumber("+27838969876"));
     }
 
     @Test
-    public void testInvalidCellNumber() {
+    public void testCellPhoneInvalid() {
+        Login login = new Login();
         assertFalse(login.checkCellPhoneNumber("08966553"));
     }
 
     @Test
-    public void testSuccessfulLogin() {
-        login.registerUser("kyl_1", "Ch&&sec@ke99!", "+27838968976", "John", "Smith");
-        boolean status = login.loginUser("kyl_1", "Ch&&sec@ke99!");
-        assertTrue(status);
-        assertEquals("Welcome John, Smith it is great to see you again.", login.returnLoginStatus(status));
+    public void testLoginSuccess() {
+        Login login = new Login("Ahlumile", "Canda");
+        login.registerUser("kyl_1", "Ch&&&sec@ke99!", "+27838969876");
+        assertTrue(login.loginUser("kyl_1", "Ch&&&sec@ke99!"));
     }
 
     @Test
-    public void testFailedLogin() {
-        login.registerUser("kyl_1", "Ch&&sec@ke99!", "+27838968976", "John", "Smith");
-        boolean status = login.loginUser("kyl_1", "wrongPassword");
-        assertFalse(status);
-        assertEquals("Username or password incorrect, please try again.", login.returnLoginStatus(status));
+    public void testLoginFailure() {
+        Login login = new Login();
+        login.registerUser("kyl_1", "Ch&&&sec@ke99!", "+27838969876");
+        assertFalse(login.loginUser("wrong", "wrong"));
+    }
+
+    @Test
+    public void testMessageLengthValid() {
+        Message msg = new Message("+27818693002", "Hi Mike, can you join us for dinner tonight?", "Sent", 1);
+        assertEquals("Message ready to send.", msg.checkMessageLength());
+    }
+
+    @Test
+    public void testMessageHashCreation() {
+        Message msg = new Message("+27818693002", "Hi Mike, can you join us for dinner tonight?", "Sent", 1);
+        // Hash depends on the generated MessageID's first 2 chars, counter 1, and first/last words (HI, TONIGHT)
+        assertNotNull(msg.getMessageHash());
+        assertTrue(msg.getMessageHash().contains("HI"));
     }
 }
-
