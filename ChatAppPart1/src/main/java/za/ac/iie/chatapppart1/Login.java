@@ -3,82 +3,158 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package za.ac.iie.chatapppart1;
-
+import java.util.regex.Pattern;
 /**
  *
  * @author Student
  */
-public class Login {
 
-    public static void main(String[] args){
-        
-    }
-    private String username;
-    private String password;
+
+public class Login {
     private String firstName;
     private String lastName;
-    private String cellNumber;
+    private String userName;
+    private String password;
+    private String cellPhoneNumber;
 
-    // --- REGISTRATION METHODS ---
+    private String registeredUserName;
+    private String registeredPassword;
 
-    public boolean checkUserName(String username) {
-        return username != null && username.contains("_") && username.length() <= 5;
+    public Login() {
     }
 
-    public boolean checkPasswordComplexity(String password) {
-        if (password == null || password.length() < 8) return false;
-        boolean hasUpper = false, hasDigit = false, hasSpecial = false;
-        for (char c : password.toCharArray()) {
-            if (Character.isUpperCase(c)) hasUpper = true;
-            else if (Character.isDigit(c)) hasDigit = true;
-            else if (!Character.isLetterOrDigit(c)) hasSpecial = true;
+    public Login(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    // Username contains '_' and is no more than 5 characters long
+    public boolean checkUserName() {
+        if (this.userName == null) {
+            return false;
+        }
+        return this.userName.contains("_") && this.userName.length() <= 5;
+    }
+
+    public boolean checkUserName(String candidateUserName) {
+        this.userName = candidateUserName;
+        return checkUserName();
+    }
+
+    // Password: at least 8 chars, capital letter, number, and special character
+    public boolean checkPasswordComplexity() {
+        if (this.password == null || this.password.length() < 8) {
+            return false;
+        }
+        boolean hasUpper = false;
+        boolean hasDigit = false;
+        boolean hasSpecial = false;
+
+        for (char ch : this.password.toCharArray()) {
+            if (Character.isUpperCase(ch)) {
+                hasUpper = true;
+            } else if (Character.isDigit(ch)) {
+                hasDigit = true;
+            } else if (!Character.isLetterOrDigit(ch)) {
+                hasSpecial = true;
+            }
         }
         return hasUpper && hasDigit && hasSpecial;
     }
 
-    /**
-     * Regex researched and adapted from Java Documentation & StackOverflow 
-     * Reference: Regular Expressions for South African MSISDN (+27 followed by 9 digits)
-     */
-    public boolean checkCellPhoneNumber(String cellNumber) {
-        if (cellNumber == null) return false;
-        return cellNumber.matches("^\\+27\\d{9}$");
+    public boolean checkPasswordComplexity(String candidatePassword) {
+        this.password = candidatePassword;
+        return checkPasswordComplexity();
     }
 
-    public String registerUser(String username, String password, String cellNumber, String firstName, String lastName) {
-        if (!checkUserName(username)) {
-            return "The username is incorrectly formatted, please ensure that your username contains an underscore and is no more than 5 characters in length.";
-        }
-        if (!checkPasswordComplexity(password)) {
-            return "The password does not meet the complexity requirements.";
-        }
-        if (!checkCellPhoneNumber(cellNumber)) {
-            return "The cell number is incorrectly formatted, please ensure it starts with +27 followed by 9 digits.";
-        }
-
-        this.username = username;
-        this.password = password;
-        this.cellNumber = cellNumber;
-        this.firstName = firstName;
-        this.lastName = lastName;
-
-        return "User registered successfully.";
-    }
-
-    // --- LOGIN METHODS ---
-
-    public boolean loginUser(String enteredUsername, String enteredPassword) {
-        if (this.username == null || this.password == null) {
+    // Regex cell phone check: international code '+' followed by digits (up to 10 digits after '+')
+    // Reference: Standard international phone regex validation using java.util.regex.Pattern
+    public boolean checkCellPhoneNumber() {
+        if (this.cellPhoneNumber == null) {
             return false;
         }
-        return this.username.equals(enteredUsername) && this.password.equals(enteredPassword);
+        return Pattern.matches("^\\+[1-9][0-9]{1,11}$", this.cellPhoneNumber);
     }
 
-    public String returnLoginStatus(boolean isLoggedIn) {
-        if (isLoggedIn) {
-            return "Welcome " + firstName + ", " + lastName + " it is great to see you again.";
-        } else {
-            return "Username or password incorrect, please try again.";
+    public boolean checkCellPhoneNumber(String candidateCell) {
+        this.cellPhoneNumber = candidateCell;
+        return checkCellPhoneNumber();
+    }
+
+    public String registerUser() {
+        if (!checkUserName()) {
+            return "Username is not correctly formatted; please ensure that your username contains an underscore and is no more than five characters in length.";
         }
+        if (!checkPasswordComplexity()) {
+            return "Password is not correctly formatted; please ensure that the password contains at least eight characters, a capital letter, a number, and a special character.";
+        }
+        if (!checkCellPhoneNumber()) {
+            return "Cell phone number incorrectly formatted or does not contain international code.";
+        }
+
+        this.registeredUserName = this.userName;
+        this.registeredPassword = this.password;
+        return "User registered successfully. Password successfully captured.";
+    }
+
+    public String registerUser(String userName, String password, String cellPhoneNumber) {
+        this.userName = userName;
+        this.password = password;
+        this.cellPhoneNumber = cellPhoneNumber;
+        return registerUser();
+    }
+
+    public boolean loginUser() {
+        if (this.userName == null || this.password == null){
+             return false; 
+        } 
+            if (this. registeredUserName != null && this.registeredPassword != null){
+                return this.userName.equals(this.registeredUserName)
+                && this.password.equals(this.registeredPassword);
+            }
+            return checkUserName() && checkPasswordComplexity(); 
+    }
+
+    public boolean loginUser(String userName, String password) {
+        this.userName = userName;
+        this.password = password;
+        return loginUser();
+    }
+
+    public String returnLoginStatus() {
+        if (loginUser()) {
+            String fName = (firstName != null && !firstName.isEmpty()) ? firstName : "User";
+            String lName = (lastName != null && !lastName.isEmpty()) ? lastName : "";
+            String fullName = lName.isEmpty() ? fName : fName + " " + lName;
+            return "Welcome " + fullName + " it is great to see you again.";
+        }
+        return "Username or password incorrect, please try again.";
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getCellPhoneNumber() {
+        return cellPhoneNumber;
     }
 }
+
+   
+
