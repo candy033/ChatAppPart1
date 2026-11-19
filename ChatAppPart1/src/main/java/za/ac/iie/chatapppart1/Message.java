@@ -5,8 +5,13 @@
 package za.ac.iie.chatapppart1;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher; 
+import java.util.regex.Pattern;
 
 /**
  *
@@ -14,6 +19,8 @@ import java.util.Random;
  */
 public class Message {
  
+   
+
     private String messageID;
     private int messageNumber;
     private String sender;
@@ -47,12 +54,12 @@ public class Message {
         return this.messageID != null && this.messageID.length() <= 10;
     }
 
-    // Recipient cell number starts with international code '+' and has valid length
+    // Recipient cell number starts with '+' followed by valid digits (up to 12 chars total)
     public boolean checkRecipientCell() {
-        return this.recipient != null
-                && this.recipient.startsWith("+")
-                && this.recipient.length() >= 3
-                && this.recipient.length() <= 12;
+        if (this.recipient == null) {
+            return false;
+        }
+        return Pattern.matches("^\\+[1-9][0-9]{1,11}$", this.recipient);
     }
 
     // First 2 chars of ID : messageNumber : FIRSTwordLASTword in ALL CAPS
@@ -112,16 +119,17 @@ public class Message {
         return sb.toString().trim();
     }
 
-    public static int returnTotalMessagess(List<Message> sentList) {
+    public static int returnTotalMessages(List<Message> sentList) {
         return sentList == null ? 0 : sentList.size();
     }
 
     // Stores messages in a JSON file
     public static void storeMessage(List<Message> messages, String filePath) {
+        List<Message> safeList = (messages == null) ? List.of() : messages;
         StringBuilder json = new StringBuilder();
         json.append("[\n");
-        for (int i = 0; i < messages.size(); i++) {
-            Message m = messages.get(i);
+        for (int i = 0; i < safeList.size(); i++) {
+            Message m = safeList.get(i);
             json.append("  {\n");
             json.append("    \"messageID\": \"").append(escapeJson(m.getMessageID())).append("\",\n");
             json.append("    \"sender\": \"").append(escapeJson(m.getSender())).append("\",\n");
@@ -130,7 +138,7 @@ public class Message {
             json.append("    \"messageHash\": \"").append(escapeJson(m.getMessageHash())).append("\",\n");
             json.append("    \"flag\": \"").append(escapeJson(m.getFlag())).append("\"\n");
             json.append("  }");
-            if (i < messages.size() - 1) {
+            if (i < safeList.size() - 1) {
                 json.append(",");
             }
             json.append("\n");
@@ -144,11 +152,64 @@ public class Message {
         }
     }
 
+    // Reads stored messages from a JSON file into an array of Message objects
+    public static Message[] readMessagesFromJsonArray(String filePath) {
+       try {
+           Path path = Path.of(filePath);
+           if (!Files.exists(path)) {
+               return new Message[0];
+           }
+           String content = Files.readString(path);
+           String[] objects = content.split("\\}\\s*,\\s*\\{");
+           List<Message> loaded = new ArrayList<>();
+           int index = 1;
+           for (String rawObj : objects) {
+               String sender = extractJsonField(rawObj, "sender");
+               String recipient = extractJsonField(rawObj, "recipient");
+               String text = extractJsonField(rawObj, "messageText");
+               String flag = extractJsonField(rawObj, "flag");
+               String id = extractJsonField(rawObj, "messageID");
+               String hash = extractJsonField(rawObj, "messageHash");
+               
+               if (!text.isEmpty() || !recipient.isEmpty()) {
+                   Message msg = new Message(sender, recipient, text, flag.isEmpty() ? "Stored" : flag, index++);
+                   if (!id.isEmpty()) {
+                       msg.messageID = id;
+                   }
+                   if (!hash.isEmpty()) {
+                       msg.messageHash = hash;
+                   }
+                   loaded.add(msg);
+               }
+           }
+           return loaded.toArray(Message[]::new);
+       } catch (IOException ex) {
+           System.getLogger(Message.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+       }
+        return null;
+    }
+
+    private static String extractJsonField(String source, String fieldName) {
+        Matcher matcher = Pattern.compile("\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*\"(.*?)\"", Pattern.DOTALL)
+                .matcher(source);
+        if (matcher.find()) {
+            return unescapeJson(matcher.group(1));
+        }
+        return "";
+    }
+
     private static String escapeJson(String value) {
         if (value == null) {
             return "";
         }
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private static String unescapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\\\"", "\"").replace("\\\\", "\\");
     }
 
     public String getMessageID() {

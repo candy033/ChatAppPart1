@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 
 public class Login {
+
     private String firstName;
     private String lastName;
     private String userName;
@@ -28,12 +29,11 @@ public class Login {
         this.lastName = lastName;
     }
 
-    // Username contains '_' and is no more than 5 characters long
+    // Username must contain '_' and be at most 5 characters long
     public boolean checkUserName() {
-        if (this.userName == null) {
-            return false;
-        }
-        return this.userName.contains("_") && this.userName.length() <= 5;
+        return this.userName != null
+                && this.userName.contains("_")
+                && this.userName.length() <= 5;
     }
 
     public boolean checkUserName(String candidateUserName) {
@@ -41,7 +41,7 @@ public class Login {
         return checkUserName();
     }
 
-    // Password: at least 8 chars, capital letter, number, and special character
+    // Password: at least 8 characters, at least 1 uppercase letter, 1 digit, and 1 special character
     public boolean checkPasswordComplexity() {
         if (this.password == null || this.password.length() < 8) {
             return false;
@@ -67,8 +67,7 @@ public class Login {
         return checkPasswordComplexity();
     }
 
-    // Regex cell phone check: international code '+' followed by digits (up to 10 digits after '+')
-    // Reference: Standard international phone regex validation using java.util.regex.Pattern
+    // International cell format: '+' followed by country code and subscriber digits (up to 12 digits total)
     public boolean checkCellPhoneNumber() {
         if (this.cellPhoneNumber == null) {
             return false;
@@ -105,14 +104,14 @@ public class Login {
     }
 
     public boolean loginUser() {
-        if (this.userName == null || this.password == null){
-             return false; 
-        } 
-            if (this. registeredUserName != null && this.registeredPassword != null){
-                return this.userName.equals(this.registeredUserName)
+        if (this.userName == null || this.password == null) {
+            return false;
+        }
+        if (this.registeredUserName == null || this.registeredPassword == null) {
+            return false;
+        }
+        return this.userName.equals(this.registeredUserName)
                 && this.password.equals(this.registeredPassword);
-            }
-            return checkUserName() && checkPasswordComplexity(); 
     }
 
     public boolean loginUser(String userName, String password) {
@@ -155,6 +154,3 @@ public class Login {
         return cellPhoneNumber;
     }
 }
-
-   
-

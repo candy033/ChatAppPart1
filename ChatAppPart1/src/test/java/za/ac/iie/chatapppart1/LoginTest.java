@@ -51,30 +51,46 @@ public class LoginTest {
     }
 
     @Test
-    public void testLoginSuccess() {
+    public void testRegistrationAndLoginSuccess() {
         Login login = new Login("Ahlumile", "Canda");
-        login.registerUser("kyl_1", "Ch&&&sec@ke99!", "+27838969876");
+        String regMsg = login.registerUser("kyl_1", "Ch&&&sec@ke99!", "+27838969876");
+        assertEquals("User registered successfully. Password successfully captured.", regMsg);
         assertTrue(login.loginUser("kyl_1", "Ch&&&sec@ke99!"));
+        assertEquals("Welcome Ahlumile Canda it is great to see you again.", login.returnLoginStatus());
     }
 
     @Test
-    public void testLoginFailure() {
-        Login login = new Login();
-        login.registerUser("kyl_1", "Ch&&&sec@ke99!", "+27838969876");
-        assertFalse(login.loginUser("wrong", "wrong"));
+    public void testLoginFailureAndUnregisteredLogin() {
+        Login freshLogin = new Login();
+        assertFalse(freshLogin.loginUser("kyl_1", "Ch&&&sec@ke99!"));
+
+        freshLogin.registerUser("kyl_1", "Ch&&&sec@ke99!", "+27838969876");
+        assertFalse(freshLogin.loginUser("wrong", "wrong"));
+        assertEquals("Username or password incorrect, please try again.", freshLogin.returnLoginStatus());
     }
 
     @Test
-    public void testMessageLengthValid() {
+    public void testMessageLengthValidAndExceeding() {
+        Message validMsg = new Message("+27818693002", "Hi Mike, can you join us for dinner tonight?", "Sent", 1);
+        assertEquals("Message ready to send.", validMsg.checkMessageLength());
+
+        String longText = "A".repeat(260);
+        Message longMsg = new Message("+27818693002", longText, "Sent", 2);
+        assertEquals("Message exceeds 250 characters by 10; please reduce the size.", longMsg.checkMessageLength());
+    }
+
+    @Test
+    public void testMessageHashAndActions() {
         Message msg = new Message("+27818693002", "Hi Mike, can you join us for dinner tonight?", "Sent", 1);
-        assertEquals("Message ready to send.", msg.checkMessageLength());
-    }
-
-    @Test
-    public void testMessageHashCreation() {
-        Message msg = new Message("+27818693002", "Hi Mike, can you join us for dinner tonight?", "Sent", 1);
-        // Hash depends on the generated MessageID's first 2 chars, counter 1, and first/last words (HI, TONIGHT)
         assertNotNull(msg.getMessageHash());
-        assertTrue(msg.getMessageHash().contains("HI"));
+        assertTrue(msg.getMessageHash().endsWith(":1:HITONIGHT"));
+        assertTrue(msg.checkRecipientCell());
+
+        assertEquals("Message successfully sent.", msg.sentMessage(1));
+        assertEquals("Sent", msg.getFlag());
+        assertEquals("Press 0 to delete the message.", msg.sentMessage(2));
+        assertEquals("Disregard", msg.getFlag());
+        assertEquals("Message successfully stored.", msg.sentMessage(3));
+        assertEquals("Stored", msg.getFlag());
     }
 }
